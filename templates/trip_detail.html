@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Trip #{{ trip.id }}{% endblock %}
+{% block content %}
+<h1>Trip #{{ trip.id }}</h1>
+<section class="card">
+  <p><span class="badge {{ trip.status|lower|replace(' ', '-') }}">{{ trip.status }}</span></p>
+  <dl>
+    <dt>Priority</dt><dd>P{{ trip.priority }} (1 = highest)</dd>
+    <dt>Package</dt><dd>{{ trip.package }}</dd>
+    <dt>Vehicle</dt><dd>{{ vehicle.name if vehicle else 'Unassigned' }}</dd>
+    <dt>Total distance</dt><dd>{{ trip.miles }} miles</dd>
+    <dt>Created</dt><dd>{{ trip.created }}</dd>
+  </dl>
+  <h2>Route</h2>
+  <ol class="route">
+    {% for city in trip.path %}<li>{{ city }}</li>{% endfor %}
+  </ol>
+  <h2>Status history</h2>
+  <ul class="history">
+    {% for h in trip.history %}<li>{{ h.at }} &mdash; {{ h.status }}</li>{% endfor %}
+  </ul>
+  <p><a href="{{ url_for('index') }}">&larr; Back to dashboard</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,56 @@
+{# Shared trips table. `mode` is 'operator' or 'driver'. #}
+<table>
+  <thead><tr>
+    <th>#</th><th>Route</th><th>Package</th><th>Miles</th>
+    <th>Priority</th>{% if mode == 'operator' %}<th>Vehicle</th>{% endif %}
+    <th>Status</th><th>{{ 'Assign / reprioritize' if mode == 'operator' else '' }}</th>
+  </tr></thead>
+  <tbody>
+  {% set ns = namespace(next_up_shown=false) %}
+  {% for t in trips %}
+    {% set is_next_up = mode == 'driver' and not ns.next_up_shown and t.status != 'Delivered' %}
+    {% if is_next_up %}{% set ns.next_up_shown = true %}{% endif %}
+    <tr {% if is_next_up %}class="next-up"{% endif %}>
+      <td><a href="{{ url_for('trip_detail', trip_id=t.id) }}">{{ t.id }}</a></td>
+      <td>{{ t.origin }} &rarr; {{ t.destination }}</td>
+      <td>{{ t.package }}{% if is_next_up %} <span class="tag">Next up</span>{% endif %}</td>
+      <td>{{ t.miles }}</td>
+      <td>P{{ t.priority }}</td>
+      {% if mode == 'operator' %}
+      <td>{{ vehicle_names.get(t.vehicle_id, 'Unassigned') }}</td>
+      {% endif %}
+      <td><span class="badge {{ t.status|lower|replace(' ', '-') }}">{{ t.status }}</span></td>
+      <td>
+        {% if mode == 'operator' and t.status in ('Pending', 'Assigned') %}
+          <form method="post" class="inline" action="{{ url_for('assign_trip', trip_id=t.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <select name="vehicle_id">
+              <option value="">Unassigned</option>
+              {% for v in vehicles %}
+              <option value="{{ v.id }}" {% if v.id == t.vehicle_id %}selected{% endif %}>{{ v.name }}</option>
+              {% endfor %}
+            </select>
+            <select name="priority">
+              {% for p in priorities %}
+              <option value="{{ p }}" {% if p == t.priority %}selected{% endif %}>P{{ p }}</option>
+              {% endfor %}
+            </select>
+            <button class="small">Save</button>
+          </form>
+        {% elif mode == 'driver' %}
+          {% set nxt = next_status(t.status) %}
+          {% if nxt %}
+          <form method="post" action="{{ url_for('update_status', trip_id=t.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="{{ nxt }}">
+            <button class="primary small">Mark {{ nxt }}</button>
+          </form>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="empty">No trips yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>

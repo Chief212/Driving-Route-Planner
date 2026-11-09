@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Driver Dashboard{% endblock %}
+{% block content %}
+<h1>Driver Dashboard</h1>
+<div class="grid">
+  <section class="card">
+    <h2>{{ vehicle.name }}</h2>
+    <p>Status: <span class="badge {{ vehicle.status|lower|replace(' ', '-') }}">{{ vehicle.status }}</span></p>
+    <p>Last reported (simulated) location: <strong>{{ vehicle.location }}</strong>
+       <small>(updated {{ vehicle.updated }})</small></p>
+    <form method="post" action="{{ url_for('report_location') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Report current city
+        <select name="city">{% for c in cities %}
+          <option {% if c == vehicle.location %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </label>
+      <button class="primary">Update location</button>
+    </form>
+  </section>
+</div>
+<section class="card">
+  <h2>My trip queue <small>(highest priority first)</small></h2>
+  {% set mode = 'driver' %}
+  {% include "_trip_table.html" %}
+</section>
+{% endblock %}
