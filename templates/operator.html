@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Operator Dashboard{% endblock %}
+{% block content %}
+<h1>Operator Dashboard</h1>
+<div class="grid">
+  <section class="card">
+    <h2>Create trip</h2>
+    <form method="post" action="{{ url_for('create_trip') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Origin
+        <select name="origin" required>{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select>
+      </label>
+      <label>Destination
+        <select name="destination" required>{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select>
+      </label>
+      <label>Package <input name="package" required maxlength="120"></label>
+      <label>Priority (1 = highest)
+        <select name="priority">
+          {% for p in priorities %}<option value="{{ p }}" {% if p == 3 %}selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Vehicle queue
+        <select name="vehicle_id">
+          <option value="">Unassigned (pending)</option>
+          {% for v in vehicles %}
+          <option value="{{ v.id }}">{{ v.name }} ({{ v.queued }} queued, at {{ v.location }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="primary">Calculate route &amp; create</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Vehicles</h2>
+    <table>
+      <thead><tr><th>Vehicle</th><th>Status</th><th>Queued</th><th>Last reported location</th><th>Updated</th></tr></thead>
+      <tbody>
+      {% for v in vehicles %}
+        <tr><td>{{ v.name }}</td>
+            <td><span class="badge {{ v.status|lower|replace(' ', '-') }}">{{ v.status }}</span></td>
+            <td>{{ v.queued }}</td><td>{{ v.location }}</td><td>{{ v.updated }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="note">Locations are driver-reported (simulated), not live GPS.</p>
+  </section>
+</div>
+<section class="card">
+  <h2>All trips ({{ trips|length }})</h2>
+  {% set mode = 'operator' %}
+  {% set vehicle_names = {} %}
+  {% for v in vehicles %}{% set _ = vehicle_names.update({v.id: v.name}) %}{% endfor %}
+  {% include "_trip_table.html" %}
+</section>
+{% endblock %}
