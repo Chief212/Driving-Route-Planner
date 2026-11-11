@@ -1,5 +1,7 @@
+# For trip IDs
 import itertools # Needed for generating unique trip IDs.
 tripIDCounter = itertools.count(0) # Counter for generating unique trip IDs.
+trips = {} # Dictionary to store trips with trip_id as the key and trip object as the value.
 
 # Code for stuff related to trips, such as creating, assigning, and updating delivery trips.
 
@@ -11,21 +13,18 @@ class Trips: # Constructor for reusable variables.
         self.destination = destination
         self.priority = priority
         # Above are what inputs are for this part.
-        self.status = "Assigned" # Default status for a new trip.
+        self.status = None # Default status for a new trip.
         self.route = [] # Placeholder for the route, which will be written later.
-        self.trip = assign_trip(trip_id, vehicle_id) # Assign the trip to a vehicle.
+        self.vehicle_id = None # Assign the trip to a vehicle.
 
 
-# Creating new route. Simple function for this, really.
+# Creating new route via simple function.
 def create_trip(origin, destination, priority):
     return Trips(next(tripIDCounter), origin, destination, priority)
 #    raise NotImplementedError("Trip creation not implemented yet")
 
 def assign_trip(trip_id, vehicle_id): # Adding the new route for the vehicle.
-    trip = Trips(trip_id, self.origin, self.destination, self.priority) # Create a new trip object with the given trip_id.
-
     raise NotImplementedError("Trip assignment not implemented yet")
-
 
 def update_status(trip_id, status, user_id): # Updates status of a trip, with user_id for validation.
     """Validate and update a delivery's status."""
