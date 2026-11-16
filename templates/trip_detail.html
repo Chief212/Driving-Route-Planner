@@ -6,7 +6,7 @@
   <p><span class="badge {{ trip.status|lower|replace(' ', '-') }}">{{ trip.status }}</span></p>
   <dl>
     <dt>Priority</dt><dd>P{{ trip.priority }} (1 = highest)</dd>
-    <dt>Package</dt><dd>{{ trip.package }}</dd>
+    <dt>Package</dt><dd>{{ trip.package or '—' }}</dd>
     <dt>Vehicle</dt><dd>{{ vehicle.name if vehicle else 'Unassigned' }}</dd>
     <dt>Total distance</dt><dd>{{ trip.miles }} miles</dd>
     <dt>Created</dt><dd>{{ trip.created }}</dd>
