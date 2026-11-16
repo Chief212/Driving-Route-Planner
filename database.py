@@ -1,90 +1,73 @@
+"""SQLite persistence for the Driving Route Planner.
+
+The table definitions live in schema.sql. Keep that file as the single source
+of truth so the Python implementation cannot silently diverge from the schema.
+"""
+from pathlib import Path
 import sqlite3
 
 DB_NAME = "route_planner.db"
+SCHEMA_PATH = Path(__file__).resolve().with_name("schema.sql")
+
+
+def _connect():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
 
 def initialize_database():
-    """Create and initialize the project database with users, vehicles, trips, and delivery status history tables."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # Enable foreign key support in SQLite
-    cursor.execute("PRAGMA foreign_keys = ON;")
+    """Create the users, vehicles, trips and status_history tables."""
+    with _connect() as conn:
+        conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
 
-    # 1. Users Table
-    cursor.execute()
-
-    # 2. Vehicles Table
-    cursor.execute()
-
-    # 3. Trips Table
-    cursor.execute()
-
-    # 4. Delivery Status History Table
-    cursor.execute()
-
-    conn.commit()
-    conn.close()
 
 def save_trip(trip):
-    
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    cursor.execute( (
-        trip.get("user_id"),
-        trip.get("vehicle_id"),
-        trip.get("status", "planned"),
-        trip.get("start_location"),
-        trip.get("end_location"),
-        trip.get("scheduled_start")
-    ))
-    
-    trip_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return trip_id
+    """Save a trip using schema.sql column names; return its new trip_id.
+
+    Required keys: origin, destination, priority.
+    Optional keys: vehicle_id, status (defaults to 'Assigned').
+    A supplied vehicle_id must already exist in vehicles.
+    """
+    if not isinstance(trip, dict):
+        raise TypeError("trip must be a dictionary")
+    required = ("origin", "destination", "priority")
+    missing = [key for key in required if trip.get(key) is None]
+    if missing:
+        raise ValueError("Missing required trip fields: " + ", ".join(missing))
+    with _connect() as conn:
+        cursor = conn.execute(
+            """INSERT INTO trips
+               (origin, destination, priority, vehicle_id, status)
+               VALUES (?, ?, ?, ?, ?)""",
+            (
+                trip["origin"],
+                trip["destination"],
+                trip["priority"],
+                trip.get("vehicle_id"),
+                trip.get("status", "Assigned"),
+            ),
+        )
+        return cursor.lastrowid
+
 
 def get_trips():
-    """Retrieve all saved delivery trips as a list of dictionaries."""
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row  # Allows fetching rows as dictionaries
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM trips")
-    rows = cursor.fetchall()
-    
-    trips = [dict(row) for row in rows]
-    conn.close()
-    return trips
+    """Retrieve saved trips as dictionaries, ordered by trip_id."""
+    with _connect() as conn:
+        rows = conn.execute("SELECT * FROM trips ORDER BY trip_id").fetchall()
+    return [dict(row) for row in rows]
+
 
 if __name__ == "__main__":
-    # 1. Initialize DB & tables
     initialize_database()
-    
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # 2. Insert a prerequisite user and vehicle for foreign key constraints
-    cursor.execute("INSERT OR IGNORE INTO users (id, username, email) VALUES (1, 'johndoe', 'john@example.com')")
-    cursor.execute("INSERT OR IGNORE INTO vehicles (id, license_plate, model, capacity) VALUES (1, 'XYZ-123', 'Toyota Prius', 4)")
-    conn.commit()
-    conn.close()
-
-    # 3. Test saving a trip
-    sample_trip = {
-        "user_id": 1,
-        "vehicle_id": 1,
-        "status": "planned",
-        "start_location": "HQ Warehouse",
-        "end_location": "123 Main St",
-        "scheduled_start": "2026-11-12 09:00:00"
+    # Demo uses an unassigned trip so no vehicle record is required.
+    sample = {
+        "origin": "Stephenville",
+        "destination": "Fort Worth",
+        "priority": 2,
+        "status": "Pending",
     }
-    
-    trip_id = save_trip(sample_trip)
-    print(f"Successfully saved trip with ID: {trip_id}")
-
-    # 4. Test retrieving trips
-    retrieved_trips = get_trips()
-    print("Retrieved Trips from DB:")
-    for t in retrieved_trips:
-        print(t)
+    trip_id = save_trip(sample)
+    print(f"Saved trip ID: {trip_id}")
+    print("Retrieved trip:", next(t for t in get_trips() if t["trip_id"] == trip_id))
