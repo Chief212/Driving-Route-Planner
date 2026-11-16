@@ -13,7 +13,7 @@
       <label>Destination
         <select name="destination" required>{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select>
       </label>
-      <label>Package <input name="package" required maxlength="120"></label>
+      <label>Package (optional) <input name="package" maxlength="120"></label>
       <label>Priority (1 = highest)
         <select name="priority">
           {% for p in priorities %}<option value="{{ p }}" {% if p == 3 %}selected{% endif %}>{{ p }}</option>{% endfor %}

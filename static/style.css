@@ -49,3 +49,6 @@ a.button { display:inline-block; text-decoration:none; padding:.5rem .9rem; bord
 a.button.primary { background:var(--accent); color:#fff; }
 ul.history { padding-left:1.2rem; color:var(--muted); }
 h2 small { font-weight:400; color:var(--muted); }
+
+.demo-banner { background:#fff4d6; color:#6b4e00; border-bottom:1px solid #e6c870;
+               padding:.4rem 1rem; font-size:.85rem; text-align:center; }

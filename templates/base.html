@@ -19,6 +19,10 @@
     </div>
     {% endif %}
   </header>
+  {% if demo_modules %}
+  <div class="demo-banner">Demo data: not yet connected to {{ demo_modules|join(', ') }}.
+    Records shown here are temporary sample data.</div>
+  {% endif %}
   <main>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}

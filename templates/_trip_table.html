@@ -13,7 +13,7 @@
     <tr {% if is_next_up %}class="next-up"{% endif %}>
       <td><a href="{{ url_for('trip_detail', trip_id=t.id) }}">{{ t.id }}</a></td>
       <td>{{ t.origin }} &rarr; {{ t.destination }}</td>
-      <td>{{ t.package }}{% if is_next_up %} <span class="tag">Next up</span>{% endif %}</td>
+      <td>{{ t.package or '—' }}{% if is_next_up %} <span class="tag">Next up</span>{% endif %}</td>
       <td>{{ t.miles }}</td>
       <td>P{{ t.priority }}</td>
       {% if mode == 'operator' %}

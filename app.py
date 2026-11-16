@@ -51,7 +51,7 @@ def current_user():
 
 @app.context_processor
 def inject_user():
-    return {"user": current_user()}
+    return {"user": current_user(), "demo_modules": services.demo_modules()}
 
 
 def login_required(role=None):
@@ -132,9 +132,7 @@ def create_trip():
     vehicle_id = int(vehicle_raw) if vehicle_raw.isdigit() else None
     priority = parse_priority(request.form.get("priority"), default=3)
 
-    if not package:
-        flash("Please describe the package.", "error")
-    elif origin == destination:
+    if origin == destination:
         flash("Origin and destination must be different cities.", "error")
     elif priority is None:
         flash("Priority must be a number from 1 (highest) to 5.", "error")
